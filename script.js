@@ -208,11 +208,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const copyrightYear = document.querySelector('footer p:first-of-type');
     copyrightYear.innerHTML = `&copy; ${new Date().getFullYear()} Karthik Reddy Personal Portfolio. All rights reserved.`;
 
-    // Add this to your existing JavaScript
+    // Update the form submission handler
     document.querySelector('.contact-form form').addEventListener('submit', function(e) {
-        e.preventDefault(); // Prevent page refresh
+        e.preventDefault(); // Prevent form from opening in new tab
         
-        // Create popup element
+        // Get form data and submit to Google Forms
+        const formData = new FormData(this);
+        fetch(this.action, {
+            method: 'POST',
+            body: formData
+        });
+        
+        // Show success message
         const popup = document.createElement('div');
         popup.className = 'submit-popup';
         popup.innerHTML = `
@@ -225,7 +232,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add popup to body
         document.body.appendChild(popup);
         
-        // Clear form
+        // Clear the form
         this.reset();
         
         // Remove popup after 3 seconds
