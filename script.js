@@ -273,4 +273,105 @@ document.addEventListener('DOMContentLoaded', function() {
             this.innerHTML = '<i class="fas fa-plus"></i> Show More';
         }
     });
+
+    // Update the createVideoPopup function
+    function createVideoPopup(videoSrc, currentIndex) {
+        const popup = document.createElement('div');
+        popup.className = 'video-popup';
+        
+        // Get ALL videos except 'coming-soon', regardless of hidden state
+        const videos = Array.from(document.querySelectorAll('.video-item:not(.coming-soon)'));
+        
+        popup.innerHTML = `
+            <div class="video-popup-content">
+                <button class="close-popup"><i class="fas fa-times"></i></button>
+                <button class="video-nav-btn prev"><i class="fas fa-chevron-left"></i></button>
+                <button class="video-nav-btn next"><i class="fas fa-chevron-right"></i></button>
+                <div class="video-container">
+                    <iframe 
+                        src="${videoSrc}"
+                        frameborder="0" 
+                        allow="autoplay; encrypted-media" 
+                        allowfullscreen>
+                    </iframe>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(popup);
+        
+        let currentContainer = popup.querySelector('.video-container');
+        
+        async function switchVideo(newSrc, direction) {
+            // Create new container
+            const newContainer = document.createElement('div');
+            newContainer.className = 'video-container';
+            newContainer.style.position = 'absolute';
+            newContainer.style.top = '0';
+            newContainer.style.left = '0';
+            newContainer.style.width = '100%';
+            newContainer.style.height = '100%';
+            newContainer.style.transform = direction === 'prev' ? 'translateX(-100%)' : 'translateX(100%)';
+            
+            newContainer.innerHTML = `
+                <iframe 
+                    src="${newSrc}"
+                    frameborder="0" 
+                    allow="autoplay; encrypted-media" 
+                    allowfullscreen>
+                </iframe>
+            `;
+            
+            // Add new container
+            popup.querySelector('.video-popup-content').appendChild(newContainer);
+            
+            // Animate transition
+            await new Promise(resolve => {
+                requestAnimationFrame(() => {
+                    // Slide out current
+                    currentContainer.style.transform = direction === 'prev' ? 'translateX(100%)' : 'translateX(-100%)';
+                    // Slide in new
+                    newContainer.style.transform = 'translateX(0)';
+                    
+                    setTimeout(() => {
+                        currentContainer.remove();
+                        currentContainer = newContainer;
+                        resolve();
+                    }, 500);
+                });
+            });
+        }
+        
+        // Navigation handlers
+        popup.querySelector('.prev').addEventListener('click', () => {
+            const prevIndex = (currentIndex - 1 + videos.length) % videos.length;
+            const prevVideo = videos[prevIndex].querySelector('iframe');
+            switchVideo(prevVideo.src, 'prev');
+            currentIndex = prevIndex;
+        });
+        
+        popup.querySelector('.next').addEventListener('click', () => {
+            const nextIndex = (currentIndex + 1) % videos.length;
+            const nextVideo = videos[nextIndex].querySelector('iframe');
+            switchVideo(nextVideo.src, 'next');
+            currentIndex = nextIndex;
+        });
+        
+        // Close handlers
+        popup.querySelector('.close-popup').addEventListener('click', () => popup.remove());
+        popup.addEventListener('click', e => {
+            if (e.target === popup) popup.remove();
+        });
+    }
+
+    // Update the click handlers
+    document.querySelectorAll('.video-item').forEach((item, index) => {
+        const iframe = item.querySelector('iframe');
+        if (iframe && !item.classList.contains('coming-soon')) {
+            item.addEventListener('click', () => {
+                createVideoPopup(iframe.src, index);
+            });
+            item.style.cursor = 'pointer';
+        }
+    });
 }); 
