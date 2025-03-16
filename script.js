@@ -1,50 +1,57 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Handle main video autoplay
+    const mainVideo = document.querySelector('.main-gig iframe');
+    if (mainVideo) {
+        // Reload the iframe to trigger autoplay
+        mainVideo.src = mainVideo.src + '?autoplay=1';
+    }
+
     // Particles.js configuration
     particlesJS('particles-js', {
         particles: {
             number: {
-                value: 80,
+                value: 60,
                 density: {
                     enable: true,
                     value_area: 900
                 }
             },
             color: {
-                value: '#00fffb'
+                value: '#ffffff'
             },
             shape: {
                 type: 'circle'
             },
             opacity: {
-                value: 0.5,
+                value: 0.3,
                 random: true,
                 anim: {
                     enable: true,
-                    speed: 0.8,
-                    opacity_min: 0.3,
+                    speed: 0.5,
+                    opacity_min: 0.1,
                     sync: false
                 }
             },
             size: {
-                value: 3,
+                value: 2,
                 random: true,
                 anim: {
                     enable: true,
                     speed: 1,
-                    size_min: 1,
+                    size_min: 0.5,
                     sync: false
                 }
             },
             line_linked: {
                 enable: true,
-                distance: 180,
-                color: '#00fffb',
-                opacity: 0.5,
-                width: 1.2
+                distance: 150,
+                color: '#ffffff',
+                opacity: 0.2,
+                width: 1
             },
             move: {
                 enable: true,
-                speed: 1.5,
+                speed: 1,
                 direction: 'none',
                 random: true,
                 straight: false,
@@ -74,11 +81,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 grab: {
                     distance: 250,
                     line_linked: {
-                        opacity: 0.7
+                        opacity: 0.4
                     }
                 },
                 push: {
-                    particles_nb: 4
+                    particles_nb: 3
                 }
             }
         },
@@ -274,104 +281,99 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Update the createVideoPopup function
-    function createVideoPopup(videoSrc, currentIndex) {
-        const popup = document.createElement('div');
-        popup.className = 'video-popup';
-        
-        // Get ALL videos except 'coming-soon', regardless of hidden state
-        const videos = Array.from(document.querySelectorAll('.video-item:not(.coming-soon)'));
-        
-        popup.innerHTML = `
-            <div class="video-popup-content">
-                <button class="close-popup"><i class="fas fa-times"></i></button>
-                <button class="video-nav-btn prev"><i class="fas fa-chevron-left"></i></button>
-                <button class="video-nav-btn next"><i class="fas fa-chevron-right"></i></button>
-                <div class="video-container">
-                    <iframe 
-                        src="${videoSrc}"
-                        frameborder="0" 
-                        allow="autoplay; encrypted-media" 
-                        allowfullscreen>
-                    </iframe>
-                </div>
-            </div>
-        `;
-        
-        document.body.appendChild(popup);
-        
-        let currentContainer = popup.querySelector('.video-container');
-        
-        async function switchVideo(newSrc, direction) {
-            // Create new container
-            const newContainer = document.createElement('div');
-            newContainer.className = 'video-container';
-            newContainer.style.position = 'absolute';
-            newContainer.style.top = '0';
-            newContainer.style.left = '0';
-            newContainer.style.width = '100%';
-            newContainer.style.height = '100%';
-            newContainer.style.transform = direction === 'prev' ? 'translateX(-100%)' : 'translateX(100%)';
-            
-            newContainer.innerHTML = `
-                <iframe 
-                    src="${newSrc}"
-                    frameborder="0" 
-                    allow="autoplay; encrypted-media" 
-                    allowfullscreen>
-                </iframe>
-            `;
-            
-            // Add new container
-            popup.querySelector('.video-popup-content').appendChild(newContainer);
-            
-            // Animate transition
-            await new Promise(resolve => {
-                requestAnimationFrame(() => {
-                    // Slide out current
-                    currentContainer.style.transform = direction === 'prev' ? 'translateX(100%)' : 'translateX(-100%)';
-                    // Slide in new
-                    newContainer.style.transform = 'translateX(0)';
-                    
-                    setTimeout(() => {
-                        currentContainer.remove();
-                        currentContainer = newContainer;
-                        resolve();
-                    }, 500);
-                });
-            });
+    // Initialize video items
+    function initializeVideoItems() {
+        // Initialize featured video
+        const mainGig = document.querySelector('.main-gig');
+        if (mainGig) {
+            const iframe = mainGig.querySelector('iframe');
+            if (iframe) {
+                // Ensure iframe has proper attributes
+                iframe.setAttribute('frameborder', '0');
+                iframe.setAttribute('allow', 'autoplay; encrypted-media; fullscreen');
+                iframe.setAttribute('allowfullscreen', 'true');
+                
+                // Ensure proper aspect ratio
+                const wrapper = iframe.closest('.video-wrapper');
+                if (wrapper) {
+                    wrapper.style.paddingTop = '56.25%'; // Force 16:9 aspect ratio
+                }
+            }
         }
-        
-        // Navigation handlers
-        popup.querySelector('.prev').addEventListener('click', () => {
-            const prevIndex = (currentIndex - 1 + videos.length) % videos.length;
-            const prevVideo = videos[prevIndex].querySelector('iframe');
-            switchVideo(prevVideo.src, 'prev');
-            currentIndex = prevIndex;
-        });
-        
-        popup.querySelector('.next').addEventListener('click', () => {
-            const nextIndex = (currentIndex + 1) % videos.length;
-            const nextVideo = videos[nextIndex].querySelector('iframe');
-            switchVideo(nextVideo.src, 'next');
-            currentIndex = nextIndex;
-        });
-        
-        // Close handlers
-        popup.querySelector('.close-popup').addEventListener('click', () => popup.remove());
-        popup.addEventListener('click', e => {
-            if (e.target === popup) popup.remove();
+
+        // Initialize category videos
+        const videoItems = document.querySelectorAll('.video-item:not(.coming-soon)');
+        videoItems.forEach(item => {
+            const iframe = item.querySelector('iframe');
+            if (iframe) {
+                // Ensure iframe has proper attributes
+                iframe.setAttribute('frameborder', '0');
+                iframe.setAttribute('allow', 'autoplay; encrypted-media; fullscreen');
+                iframe.setAttribute('allowfullscreen', 'true');
+                
+                // Ensure proper aspect ratio
+                const wrapper = iframe.closest('.video-wrapper');
+                if (wrapper) {
+                    wrapper.style.paddingTop = '56.25%'; // Force 16:9 aspect ratio
+                }
+            }
         });
     }
 
-    // Update the click handlers
-    document.querySelectorAll('.video-item').forEach((item, index) => {
-        const iframe = item.querySelector('iframe');
-        if (iframe && !item.classList.contains('coming-soon')) {
-            item.addEventListener('click', () => {
-                createVideoPopup(iframe.src, index);
+    // Category switching functionality
+    function initializeCategoryTabs() {
+        const categoryTabs = document.querySelectorAll('.category-tab');
+        const videoItems = document.querySelectorAll('.video-item');
+
+        // Function to handle category filtering
+        function filterVideos(category) {
+            // Remove active class from all tabs
+            categoryTabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Add active class to clicked tab
+            const activeTab = document.querySelector(`.category-tab[data-category="${category}"]`);
+            if (activeTab) {
+                activeTab.classList.add('active');
+            }
+
+            // Filter videos with animation
+            videoItems.forEach(item => {
+                const itemCategory = item.getAttribute('data-category');
+                
+                // First set opacity and transform for animation
+                if (category === 'all' || itemCategory === category) {
+                    // Show this item
+                    item.style.display = 'block';
+                    // Use setTimeout to ensure display: block has taken effect
+                    setTimeout(() => {
+                        item.style.opacity = '1';
+                        item.style.transform = 'translateY(0)';
+                    }, 10);
+                } else {
+                    // Hide this item
+                    item.style.opacity = '0';
+                    item.style.transform = 'translateY(20px)';
+                    // After animation completes, hide the element
+                    setTimeout(() => {
+                        item.style.display = 'none';
+                    }, 300); // Match this with your CSS transition duration
+                }
             });
-            item.style.cursor = 'pointer';
         }
-    });
+
+        // Add click event listeners to category tabs
+        categoryTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const category = tab.getAttribute('data-category');
+                filterVideos(category);
+            });
+        });
+
+        // Show all videos initially
+        filterVideos('all');
+    }
+
+    // Initialize all components
+    initializeVideoItems();
+    initializeCategoryTabs();
 }); 
